@@ -15,7 +15,8 @@
   raw: |
     yum remove -y nodejs
     cd /usr/local/src
-    git clone https://github.com/tj/n.git | true cd n
+    git clone https://github.com/tj/n.git | true
+    cd n
     make
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
