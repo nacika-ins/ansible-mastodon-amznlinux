@@ -1,0 +1,558 @@
+# Amazon Linux 2018.03.0 for Amazon Lightsail
+---
+
+- name: change timezone JST
+  raw: |
+    cp /etc/sysconfig/clock /etc/sysconfig/clock.org
+    ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+    echo 'ZONE="Asia/Tokyo"' > /etc/sysconfig/clock
+    echo 'UTC=false' > /etc/sysconfig/clock
+    sudo timedatectl set-timezone Asia/Tokyo
+    sudo hostnamectl set-hostname deploy.dot.com
+    service crond restart
+
+- name: install node
+  raw: |
+    yum remove -y nodejs
+    cd /usr/local/src
+    git clone https://github.com/tj/n.git | true cd n
+    make
+    mkdir -p /usr/local/n
+    chown -R 991:991 /usr/local/n
+    n stable
+ 
+- name: install yarn
+  raw: | 
+    cd /usr/local/src
+    wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
+    yes | curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+    curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+    yum install -y yarn
+
+- name: install epel
+  raw: |
+    mkdir -p /usr/local/src
+    cd /usr/local/src
+    wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+    yum -y localinstall epel-release-latest-6.noarch.rpm | true
+    sudo yum install epel-release
+
+- name: dependency ffmpeg
+  yum: pkg={{item}} state=latest
+  with_items:
+    - autoconf
+    - automake
+    - cmake
+    - freetype-devel
+    - gcc
+    - gcc-c++
+    - git
+    - libtool
+    - make
+    - mercurial
+    - pkgconfig
+    - zlib-devel
+
+- name: check file yasm
+  stat:
+    path: $HOME/bin/yasm
+  register: yasm
+
+- name: install ffmpeg yasm
+  when: not yasm.stat.exists
+  raw: |
+
+    echo "yasm"
+    cd /usr/local/src
+    git clone --depth 1 git://github.com/yasm/yasm.git
+    cd yasm
+    autoreconf -fiv
+    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
+    make
+    make install
+
+- name: check file nasm
+  stat:
+    path: $HOME/bin/nasm
+  register: nasm
+
+- name: install nasm
+  when: not nasm.stat.exists
+  raw: |
+    echo "nasm"
+    cd /usr/local/src
+    wget https://www.nasm.us/pub/nasm/releasebuilds/2.14rc15/nasm-2.14rc15.tar.xz
+    tar xvfJ nasm-2.14rc15.tar.xz
+    cd nasm-2.14rc15
+    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
+    make
+    make install
+
+- name: check file x264
+  stat:
+    path: $HOME/bin/x264
+  register: x264
+
+- name: install ffmpeg x264
+  when: not x264.stat.exists
+  raw: |
+    echo "x264"
+    cd /usr/local/src
+    git clone --depth 1 git://git.videolan.org/x264
+    cd x264
+    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --enable-static
+    make
+    make install
+
+- name: check file x265
+  stat:
+    path: $HOME/ffmpeg_build/bin/x265
+  register: x265
+
+- name: install ffmpeg x265
+  when: not x265.stat.exists
+  raw: |
+    echo "x265"
+    cd /usr/local/src
+    hg clone https://bitbucket.org/multicoreware/x265
+    cd x265/build/linux
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off ../../source
+    make
+    make install
+
+- name: check file aac
+  stat:
+    path: $HOME/ffmpeg_build/lib/libfdk-aac.a
+  register: aac
+
+- name: aac exists
+  debug:
+    msg: "{{aac.stat.exists}}"
+
+- name: install ffmpeg aac
+  when: not aac.stat.exists
+  raw: |
+    echo "aac"
+    cd /usr/local/src
+    git clone --depth 1 git://git.code.sf.net/p/opencore-amr/fdk-aac
+    cd fdk-aac
+    autoreconf -fiv
+    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
+    make
+    make install
+
+- name: check file lame
+  stat:
+    path: $HOME/bin/lame
+  register: lame
+
+- name: install ffmpeg lame
+  when: not lame.stat.exists
+  raw: |
+    echo "lame"
+    cd /usr/local/src
+    curl -O -L http://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
+    tar xzvf lame-3.100.tar.gz
+    cd lame-3.100
+    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --disable-shared --enable-nasm
+    make
+    make install 
+
+- name: check file opus
+  stat:
+    path: $HOME/bin/opus
+  register: opus
+
+- name: install ffmpeg opus
+  when: not opus.stat.exists
+  raw: |
+    echo "opus"
+    cd /usr/local/src
+    cd ~/ffmpeg_sources
+    git clone http://git.opus-codec.org/opus.git
+    cd opus
+    autoreconf -fiv
+    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
+    make
+    make install
+
+- name: check file libogg
+  stat:
+    path: $HOME/bin/libogg
+  register: libogg
+
+- name: install ffmpeg libogg
+  when: not libogg.stat.exists
+  raw: |
+    echo "libogg"
+    cd /usr/local/src
+    curl -O https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-1.3.3.tar.gz
+    tar xzvf libogg-1.3.3.tar.gz
+    cd libogg-1.3.3
+    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
+    make
+    make install
+
+- name: check file vorbis
+  stat:
+    path: $HOME/bin/vorbis
+  register: vorbis
+
+- name: install ffmpeg vorbis
+  when: not vorbis.stat.exists
+  raw: |
+    echo "vorbis"
+    cd /usr/local/src
+    curl -O https://ftp.osuosl.org/pub/xiph/releases/vorbis/libvorbis-1.3.6.tar.gz
+    tar xzvf libvorbis-1.3.6.tar.gz
+    cd libvorbis-1.3.6
+    LDFLAGS="-L$HOME/ffmeg_build/lib" CPPFLAGS="-I$HOME/ffmpeg_build/include" ./configure --prefix="$HOME/ffmpeg_build" --with-ogg="$HOME/ffmpeg_build" --disable-shared
+    make
+    make install
+
+- name: check file libvpx
+  stat:
+    path: $HOME/bin/libvpx
+  register: libvpx
+
+- name: install ffmpeg libvpx
+  when: not libvpx.stat.exists
+  raw: |
+    echo "libvpx" 
+    cd /usr/local/src
+    git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
+    cd libvpx
+    ./configure --prefix="$HOME/ffmpeg_build" --disable-examples
+    make
+    make install
+
+- name: check file libvpx
+  stat:
+    path: $HOME/bin/libvpx
+  register: libvpx
+
+- name: cmake check version
+  command: cmake --version | head -n 1 | sed -r 's/.*([.0-9]+).*/\1/'
+  register: cmake_version
+
+- name: cmake version
+  debug:
+    msg: "{{ cmake_version.rc }}"
+
+- name: install cmake 3
+  when: cmake_version.rc != 3
+  raw: |
+    cd /usr/local/src
+    wget https://cmake.org/files/v3.12/cmake-3.12.3-Linux-x86_64.tar.gz
+    tar xzvf cmake-3.12.3-Linux-x86_64.tar.gz
+    cp -r cmake-3.12.3-Linux-x86_64/* /
+    echo "export CMAKE_ROOT=/share/cmake-3.12/" >> /etc/environment
+    export CMAKE_ROOT=/share/cmake-3.12/
+   
+- name: check file aom
+  stat:
+    path: $HOME/ffmpeg_build/include/aom/aom.h
+  register: aom
+
+- name: aom  exists
+  debug:
+    msg: "{{aom.stat.exists}}"
+
+
+- name: install ffmpeg aom
+  when: not aom.stat.exists
+  raw: |
+    echo "aom"
+    cd /usr/local/src
+    git clone --depth 1 https://aomedia.googlesource.com/aom
+    mkdir aom_build
+    cd aom_build
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom
+    make
+    make install
+
+- name: check file ffmpeg
+  stat:
+    path: $HOME/ffmpeg_build/bin/x265
+  register: ffmpeg
+
+- name: install ffmpeg ffmpeg
+  when: not ffmpeg.stat.exists
+  raw: |
+    echo "ffmpeg"
+    cd /usr/local/src
+    wget http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz
+    tar Jxfv ffmpeg-4.0.2.tar.xz
+    cd ffmpeg-4.0.2
+    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --extra-cflags="-I$HOME/ffmpeg_build/include" --extra-ldflags="-L$HOME/ffmpeg_build/lib" --bindir="$HOME/bin" --pkg-config-flags="--static" --enable-gpl --enable-nonfree --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libaom --extra-libs=-lpthread --extra-libs=-lm
+    make
+    make install
+    hash -r
+
+- name: install wkhtmltoimage
+  raw: |
+    cd /usr/local/src
+    wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+    tar -xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
+    mv wkhtmltox/bin/wkhtmltoimage /usr/bin/wkhtmltoimage
+
+- name: install pkg-config
+  raw: | 
+    cd /usr/local/src
+    # https://centos.pkgs.org/7/centos-x86_64/pkgconfig-0.27.1-4.el7.x86_64.rpm.html
+    wget http://mirror.centos.org/centos/7/os/x86_64/Packages/pkgconfig-0.27.1-4.el7.x86_64.rpm
+    yum localinstall -y pkgconfig-0.27.1-4.el7.x86_64.rpm
+
+- name: install db4
+  raw: |
+    yum install -y db4-utils db4
+
+- name: install build-essential
+  raw: | 
+    yum groupinstall -y  "Development Tools" "Development Libraries"
+
+- name: install remi repository
+  raw: |
+    sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm | true
+
+- name: install other library for remi
+  yum: pkg={{item}} state=latest enablerepo=remi
+  with_items:
+    - redis
+
+- name: install certbot
+  raw: |
+    cd /usr/local/src
+    wget https://dl.eff.org/certbot-auto
+    chmod a+x certbot-auto
+    cp certbot-auto /usr/local/bin
+
+- name: install other library
+  yum: pkg={{item}} state=latest
+  with_items:
+     - ImageMagick
+     - postgresql-devel
+     - libxml2-devel
+     - libxslt-devel
+     - file
+     - git
+     - git-core
+     - gcc-c++
+     - protobuf
+     - protobuf-compiler
+     - protobuf-devel
+     - gcc
+     - autoconf
+     - bison
+     - openssl
+     - openssl-devel # libssl-dev
+     - libyaml-devel # libyaml-devel
+     - readline
+     - readline-devel # libreadline6-dev
+     - zlib
+     - zlib-devel #  zlib1g-dev
+     - ncurses-libs # ncurses-libs
+     - ncurses-devel
+     - libffi-devel #libffi-dev
+     - gdbm # libgdbm5
+     - gdbm-devel # libgdbm-dev
+     - nginx
+     - postgresql
+     - postgresql-contrib
+     - libidn-devel
+     - libicu-devel
+
+- name: copy rbenv.sh
+  copy:
+     src: rbenv.sh
+     dest: /etc/profile.d/rbenv.sh
+     owner: root
+     group: root
+     mode: 0644 
+
+- name: check ruby install
+  raw: ruby -v | grep -ioh "2.5.1" | wc -l
+  register: ruby_installed
+
+- name: ruby installed
+  debug:
+    msg: "{{ ruby_installed.rc }}"
+
+- name: install ruby
+  when: ruby_installed.rc == 0
+  raw: |
+    cd /usr/local/src
+    git clone https://github.com/sstephenson/rbenv.git /usr/local/rbenv
+    git clone https://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugin/ruby-build
+    /usr/local/rbenv/plugin/ruby-build/install.sh
+    source /etc/profile.d/rbenv.sh
+    rbenv install 2.5.1
+    rbenv global 2.5.1
+    gem install bundler --no-ri --no-rdoc 
+
+- name: add mastodon group
+  group: name=mastodon gid=991
+
+- name: add mastodon user
+  user: name=mastodon uid=991 state=present  groups=mastodon
+
+- name: change ruby permission
+  raw: |
+    chown -R 991:991 /usr/local/rbenv/versions/2.5.1/lib/ruby/gems/2.5.0
+
+
+- name: install node for mastodon
+  become: yes
+  become_user: mastodon
+  raw: |
+    echo "export N_PREFIX=/home/mastodon/" >> ~/.bashrc
+    echo "PATH=/usr/local/bin:~/n/bin/:$PATH" >> ~/.bashrc
+    source ~/.bashrc
+    export PATH=/usr/local/bin:~/n/bin/:$PATH
+    n stable
+
+- name: ruby yum dependencies
+  yum: pkg={{item}} state=latest
+  with_items:
+    - icu.x86_64
+    - libicu-devel.x86_64
+
+- name: ruby dependencies
+  become: yes
+  become_user: mastodon
+  raw: |
+    cd ~
+    [ ! -e ~/live ] && git clone https://github.com/tootsuite/mastodon.git live
+    cd ~/live
+    [ `git branch | grep '* production' | wc -l` -ne 1 ] && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1) | true
+    [ `git branch | grep '* production' | wc -l` -ne 1 ] && git checkout -b production
+    gem install bundler
+    export PATH=/usr/local/rbenv/shims/:$PATH
+    bundle config --local build.charlock_holmes -- --with-cxxflags=-std=c++11
+    bundle config --local build.cld3 -- --with-cxxflags=-std=c++11
+    bundle config --local build.unf_ext -- --with-cxxflags=-std=c++11
+    bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+
+- name: nodejs dependencies
+  become: yes
+  become_user: mastodon
+  raw: |
+    source ~/.bashrc
+    cd ~
+    [ ! -e ~/live ] && git clone https://github.com/tootsuite/mastodon.git live
+    cd ~/live
+    yarn install --pure-lockfile
+
+
+- name: install postgres
+  shell: |
+    sudo yum localinstall -y https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
+    sudo yum install -y postgresql96 postgresql96-server postgresql96-libs postgresql96-contrib
+    sudo chkconfig postgresql96 on
+    # sudo /etc/init.d/postgresql96 initdb
+    sudo /etc/init.d/postgresql96 start | true
+
+- name: postgres database creation
+  become: yes
+  become_user: postgres
+  raw: |
+    psql --command "CREATE USER mastodon CREATEDB;" | true
+
+
+- name: copy nginx.conf
+  template:
+     src: nginx.conf
+     dest: /etc/nginx/conf.d/mastodon.conf
+     owner: root
+     group: root
+     mode: 0644 
+
+
+- name: install redis
+  raw: |
+    chkconfig redis on
+    service redis start
+
+- name: check certbot
+  stat:
+    path: /etc/letsencrypt/live/{{site_domain}}/cert.pem
+  register: certbot
+
+- name: exists certbot
+  debug:
+    msg: "{{certbot.stat.exists}}"
+
+- debug:
+  msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
+
+- name: first run certbot
+  when: not certbot.stat.exists
+  raw: |
+    service nginx stop | true
+    pip install -U pip virtualenv cryptography argparse cheetah oauth PrettyTable pyserial   | true
+    find / -name chardet* | grep python | xargs rm | true
+    rm -rf /opt/eff.org/certbot/
+    pip install certbot | true
+    certbot-auto certonly --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
+
+
+- name: start nginx
+  raw: |
+    service nginx start
+
+-  debug:
+    msg: "この処理でも止まるので手動で操作します。"
+
+- name: certbot using webroot
+  raw: |
+    certbot certonly --webroot -d {{site_domain}} -w /home/mastodon/live/public/
+
+
+
+- name: copy letsencrypt-renew
+  copy:
+     src: letsencrypt-renew
+     dest: /etc/cron.daily/letsencrypt-renew
+     owner: root
+     group: root
+     mode: 0744 
+
+- name: rbenv set path
+  become: yes
+  become_user: mastodon
+  raw: |
+    echo "source  /etc/profile.d/rbenv.sh" >> ~/.bashrc
+
+- debug:
+    msg: "ここでも処理が止まるので手動で対応"
+
+- name: mastodon application configuration
+  become: yes
+  become_user: mastodon
+  shell: |
+   source ~/.bashrc
+   source  /etc/profile.d/rbenv.sh
+   cd ~/live
+   echo ruby -v
+   bundle install
+   RAILS_ENV=production bundle exec rake mastodon:setup 
+
+
+- name: setup permission
+  raw: |
+    usermod -aG users nginx
+    chmod 770 /home/mastodon/
+    service nginx reload
+
+- name: install supervisor
+  raw: | 
+    mkdir -p /var/log/supervisor/
+    pip install supervisor
+
+- name: copy supervisord.conf # nohup /usr/bin/python2.7 /usr/bin/supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &
+  copy:
+     src: supervisord.conf
+     dest: supervisord.conf
+     owner: root
+     group: root
+     mode: 0644

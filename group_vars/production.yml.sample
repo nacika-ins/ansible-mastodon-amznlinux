@@ -1,0 +1,3 @@
+---
+site_domain: example.com
+certbot_email_address: mail@example.com
