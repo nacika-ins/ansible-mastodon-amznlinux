@@ -21,9 +21,9 @@
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
     n stable
- 
+
 - name: install yarn
-  raw: | 
+  raw: |
     cd /usr/local/src
     wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
     yes | curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
@@ -451,7 +451,9 @@
     sudo yum install -y postgresql96 postgresql96-server postgresql96-libs postgresql96-contrib
     sudo chkconfig postgresql96 on
     # sudo /etc/init.d/postgresql96 initdb
+    sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
     sudo /etc/init.d/postgresql96 start | true
+
 
 - name: postgres database creation
   become: yes
@@ -516,7 +518,7 @@
      dest: /etc/cron.daily/letsencrypt-renew
      owner: root
      group: root
-     mode: 0744 
+     mode: 0744
 
 - name: rbenv set path
   become: yes
@@ -536,7 +538,7 @@
    cd ~/live
    echo ruby -v
    bundle install
-   RAILS_ENV=production bundle exec rake mastodon:setup 
+   RAILS_ENV=production bundle exec rake mastodon:setup
 
 
 - name: setup permission
@@ -546,7 +548,7 @@
     service nginx reload
 
 - name: install supervisor
-  raw: | 
+  raw: |
     mkdir -p /var/log/supervisor/
     pip install supervisor
 
