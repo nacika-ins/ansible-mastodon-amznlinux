@@ -30,7 +30,7 @@
     make
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
-    n stable
+    /usr/local/bin/n stable
 
 - name: install yarn
   raw: |
