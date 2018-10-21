@@ -169,7 +169,6 @@
   raw: |
     echo "opus"
     cd /usr/local/src
-    cd ~/ffmpeg_sources
     git clone http://git.opus-codec.org/opus.git
     cd opus
     autoreconf -fiv
