@@ -485,7 +485,7 @@
     msg: "{{certbot.stat.exists}}"
 
 - debug:
-  msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
+    msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
 
 - name: first run certbot
   when: not certbot.stat.exists
