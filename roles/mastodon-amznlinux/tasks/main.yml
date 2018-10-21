@@ -19,9 +19,11 @@
     sudo hostnamectl set-hostname deploy.dot.com
     service crond restart
 
+- name: uninstall nodejs
+  yum: name=nodejs state=absent
+
 - name: install node
   raw: |
-    yum remove -y nodejs
     cd /usr/local/src
     git clone https://github.com/tj/n.git | true
     cd n
