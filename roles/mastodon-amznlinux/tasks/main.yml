@@ -41,12 +41,7 @@
     yum install -y yarn
 
 - name: install epel
-  raw: |
-    mkdir -p /usr/local/src
-    cd /usr/local/src
-    wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-    yum -y localinstall epel-release-latest-6.noarch.rpm | true
-    sudo yum install epel-release
+  yum: name=epel-release
 
 - name: dependency ffmpeg
   yum: pkg={{item}} state=latest
