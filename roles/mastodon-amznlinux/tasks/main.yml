@@ -1,6 +1,11 @@
 # Amazon Linux 2018.03.0 for Amazon Lightsail
 ---
 
+- name: install packages
+  yum:
+    name:
+      - git
+
 - name: change timezone JST
   raw: |
     cp /etc/sysconfig/clock /etc/sysconfig/clock.org
@@ -47,7 +52,6 @@
     - freetype-devel
     - gcc
     - gcc-c++
-    - git
     - libtool
     - make
     - mercurial
