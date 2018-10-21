@@ -1,6 +1,9 @@
 # Amazon Linux 2018.03.0 for Amazon Lightsail
 ---
 
+- name: yum update
+  yum: name=* state=latest
+
 - name: install packages
   yum:
     name:
