@@ -273,6 +273,7 @@
     git clone --depth 1 https://aomedia.googlesource.com/aom
     mkdir aom_build
     cd aom_build
+    export PATH=$PATH:$HOME/bin
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom
     make
     make install
