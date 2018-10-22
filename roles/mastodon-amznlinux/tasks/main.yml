@@ -227,6 +227,7 @@
     cd /usr/local/src
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
     cd libvpx
+    export PATH=$PATH:$HOME/bin
     ./configure --prefix="$HOME/ffmpeg_build" --disable-examples
     make
     make install
