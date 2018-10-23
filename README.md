@@ -4,17 +4,24 @@ Ansible construction script of mastodon instance
 
 ### AmazonLinux Version
 
-* Amazon Linux 2018.03.0
-* Amazon Lightsail ready
+- Amazon Linux 2018.03.0
+- Amazon Lightsail ready
 
 ### Mastodon Version
-* 2.5.0 ready
 
-## SETUP
+- 2.5.0 ready
 
-1. please rewrite group_vars file. `group_vars/production.yml`
-2. let try `ansible-playbook -i localhost localhost.yml -vv`
-3. start supervisord `nohup /usr/bin/python2.7 /usr/bin/supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &`
+## Setup for Amazon Linux 2018.03.0
+
+1. `sudo su -`
+2. `yum install -y git`
+3. `pip install ansible`
+4. `cd /usr/local/src`
+5. `git clone https://github.com/nacika-ins/ansible-mastodon-amznlinux.git; cd ansible-mastodon-amznlinux`
+6. `cp group_vars/production.yml.sample group_vars/production.yml`
+7. please rewrite group_vars file. `vim group_vars/production.yml`
+8. let try `ansible-playbook -i localhost localhost.yml -vv`
+9. start supervisord `nohup /usr/bin/python2.7 /usr/bin/supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1 &`
 
 ## Amazon S3 IAM Policy sampile
 
