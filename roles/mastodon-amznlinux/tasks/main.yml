@@ -137,22 +137,12 @@
     make
     make install
 
-- name: check file lame
-  stat:
-    path: $HOME/bin/lame
-  register: lame
-
-- name: install ffmpeg lame
-  when: not lame.stat.exists
-  raw: |
-    echo "lame"
-    cd /usr/local/src
-    curl -O -L http://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
-    tar xzvf lame-3.100.tar.gz
-    cd lame-3.100
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --disable-shared --enable-nasm
-    make
-    make install 
+- name: install lame
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-libs-3.100-1.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-3.100-1.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-devel-3.100-1.el6.x86_64.rpm
 
 - name: install opus
   yum:
