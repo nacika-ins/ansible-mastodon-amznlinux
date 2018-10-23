@@ -185,8 +185,10 @@
     yum localinstall -y pkgconfig-0.27.1-4.el7.x86_64.rpm
 
 - name: install db4
-  raw: |
-    yum install -y db4-utils db4
+  yum:
+    name:
+      - db4-utils
+      - db4
 
 - name: install build-essential
   raw: | 
