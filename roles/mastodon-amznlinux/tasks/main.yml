@@ -124,14 +124,8 @@
       - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/a/aom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
       - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-devel-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
 
-- name: check file ffmpeg
-  stat:
-    path: $HOME/ffmpeg_build/bin/x265
-  register: ffmpeg
-
 - name: install ffmpeg ffmpeg
-  when: not ffmpeg.stat.exists
-  raw: |
+  shell: |
     echo "ffmpeg"
     cd /usr/local/src
     wget http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz
@@ -141,6 +135,8 @@
     make
     make install
     hash -r
+  args:
+    creates: $HOME/bin/ffmpeg
 
 - name: install wkhtmltoimage
   raw: |
