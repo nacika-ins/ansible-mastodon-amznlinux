@@ -21,7 +21,7 @@ Ansible construction script of mastodon instance
 6. `cp group_vars/production.yml.sample group_vars/production.yml`
 7. please rewrite group_vars file. `vim group_vars/production.yml`
 8. let try `ansible-playbook -i localhost localhost.yml -vv`
-9. start supervisord `nohup /usr/bin/python2.7 /usr/bin/supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1 &`
+9. start supervisord `nohup PATH=$PATH:/usr/local/bin:/usr/bin supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &`
 
 ## Amazon S3 IAM Policy sampile
 
