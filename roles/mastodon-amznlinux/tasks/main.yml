@@ -215,27 +215,11 @@
     make
     make install
 
-- name: check file libvpx
-  stat:
-    path: $HOME/bin/libvpx
-  register: libvpx
-
-- name: install ffmpeg libvpx
-  when: not libvpx.stat.exists
-  raw: |
-    echo "libvpx" 
-    cd /usr/local/src
-    git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
-    cd libvpx
-    export PATH=$PATH:$HOME/bin
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-examples
-    make
-    make install
-
-- name: check file libvpx
-  stat:
-    path: $HOME/bin/libvpx
-  register: libvpx
+- name: install libvpx
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-1.7.0-5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-devel-1.7.0-5.fc28.x86_64.rpm
 
 - name: cmake check version
   command: cmake --version | head -n 1 | sed -r 's/.*([.0-9]+).*/\1/'
