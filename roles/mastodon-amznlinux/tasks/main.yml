@@ -44,19 +44,20 @@
   yum: name=epel-release
 
 - name: dependency ffmpeg
-  yum: pkg={{item}} state=latest
-  with_items:
-    - autoconf
-    - automake
-    - cmake
-    - freetype-devel
-    - gcc
-    - gcc-c++
-    - libtool
-    - make
-    - mercurial
-    - pkgconfig
-    - zlib-devel
+  yum:
+    state: latest
+    name:
+      - autoconf
+      - automake
+      - cmake
+      - freetype-devel
+      - gcc
+      - gcc-c++
+      - libtool
+      - make
+      - mercurial
+      - pkgconfig
+      - zlib-devel
 
 - name: install yasm
   yum: name=yasm
@@ -166,9 +167,7 @@
     sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm | true
 
 - name: install other library for remi
-  yum: pkg={{item}} state=latest enablerepo=remi
-  with_items:
-    - redis
+  yum: pkg=redis state=latest enablerepo=remi
 
 - name: install certbot
   raw: |
@@ -178,39 +177,40 @@
     cp certbot-auto /usr/local/bin
 
 - name: install other library
-  yum: pkg={{item}} state=latest
-  with_items:
-     - ImageMagick
-     - postgresql-devel
-     - libxml2-devel
-     - libxslt-devel
-     - file
-     - git
-     - git-core
-     - gcc-c++
-     - protobuf
-     - protobuf-compiler
-     - protobuf-devel
-     - gcc
-     - autoconf
-     - bison
-     - openssl
-     - openssl-devel # libssl-dev
-     - libyaml-devel # libyaml-devel
-     - readline
-     - readline-devel # libreadline6-dev
-     - zlib
-     - zlib-devel #  zlib1g-dev
-     - ncurses-libs # ncurses-libs
-     - ncurses-devel
-     - libffi-devel #libffi-dev
-     - gdbm # libgdbm5
-     - gdbm-devel # libgdbm-dev
-     - nginx
-     - postgresql
-     - postgresql-contrib
-     - libidn-devel
-     - libicu-devel
+  yum:
+    state: latest
+    name:
+      - ImageMagick
+      - postgresql-devel
+      - libxml2-devel
+      - libxslt-devel
+      - file
+      - git
+      - git-core
+      - gcc-c++
+      - protobuf
+      - protobuf-compiler
+      - protobuf-devel
+      - gcc
+      - autoconf
+      - bison
+      - openssl
+      - openssl-devel # libssl-dev
+      - libyaml-devel # libyaml-devel
+      - readline
+      - readline-devel # libreadline6-dev
+      - zlib
+      - zlib-devel #  zlib1g-dev
+      - ncurses-libs # ncurses-libs
+      - ncurses-devel
+      - libffi-devel #libffi-dev
+      - gdbm # libgdbm5
+      - gdbm-devel # libgdbm-dev
+      - nginx
+      - postgresql
+      - postgresql-contrib
+      - libidn-devel
+      - libicu-devel
 
 - name: copy rbenv.sh
   copy:
@@ -262,10 +262,11 @@
     n stable
 
 - name: ruby yum dependencies
-  yum: pkg={{item}} state=latest
-  with_items:
-    - icu.x86_64
-    - libicu-devel.x86_64
+  yum:
+    state: latest
+    name:
+      - icu.x86_64
+      - libicu-devel.x86_64
 
 - name: ruby dependencies
   become: yes
