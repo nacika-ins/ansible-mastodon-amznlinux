@@ -185,24 +185,9 @@
       - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-1.7.0-5.fc28.x86_64.rpm
       - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-devel-1.7.0-5.fc28.x86_64.rpm
 
-- name: cmake check version
-  command: cmake --version | head -n 1 | sed -r 's/.*([.0-9]+).*/\1/'
-  register: cmake_version
+- name: install cmake3
+  yum: name=cmake3
 
-- name: cmake version
-  debug:
-    msg: "{{ cmake_version.rc }}"
-
-- name: install cmake 3
-  when: cmake_version.rc != 3
-  raw: |
-    cd /usr/local/src
-    wget https://cmake.org/files/v3.12/cmake-3.12.3-Linux-x86_64.tar.gz
-    tar xzvf cmake-3.12.3-Linux-x86_64.tar.gz
-    cp -r cmake-3.12.3-Linux-x86_64/* /
-    echo "export CMAKE_ROOT=/share/cmake-3.12/" >> /etc/environment
-    export CMAKE_ROOT=/share/cmake-3.12/
-   
 - name: check file aom
   stat:
     path: $HOME/ffmpeg_build/include/aom/aom.h
