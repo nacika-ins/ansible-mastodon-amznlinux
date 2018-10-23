@@ -116,26 +116,11 @@
     make
     make install
 
-- name: check file aac
-  stat:
-    path: $HOME/ffmpeg_build/lib/libfdk-aac.a
-  register: aac
-
-- name: aac exists
-  debug:
-    msg: "{{aac.stat.exists}}"
-
-- name: install ffmpeg aac
-  when: not aac.stat.exists
-  raw: |
-    echo "aac"
-    cd /usr/local/src
-    git clone --depth 1 git://git.code.sf.net/p/opencore-amr/fdk-aac
-    cd fdk-aac
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
+- name: install fdk-aac
+  yum:
+    name:
+      - http://li.nux.ro/download/nux/dextop/el7/x86_64/fdk-aac-0.1.4-1.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/fdk-aac-devel-0.1.4-1.x86_64.rpm
 
 - name: install lame
   yum:
