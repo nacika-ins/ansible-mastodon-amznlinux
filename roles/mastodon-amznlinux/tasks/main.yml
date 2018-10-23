@@ -161,8 +161,7 @@
       - "@Development Libraries"
 
 - name: install remi repository
-  raw: |
-    sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm | true
+  yum: name=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
 
 - name: install other library for remi
   yum: pkg=redis state=latest enablerepo=remi
