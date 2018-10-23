@@ -298,11 +298,11 @@
 
 - name: check postgres
   shell: |
-    sudo -u postgres psql -l | grep mastodon | wc -l
+    sudo -u postgres psql -l 2>/dev/null | grep mastodon | wc -l
   register: check_postgres
 
 - name: start postgresql96
-  when: check_postgres.rc == 0
+  when: check_postgres.rc == "0"
   shell: |
     sudo chkconfig postgresql96 on
     sudo /etc/init.d/postgresql96 stop | true
