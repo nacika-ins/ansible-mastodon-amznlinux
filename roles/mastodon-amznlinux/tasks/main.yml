@@ -58,23 +58,8 @@
     - pkgconfig
     - zlib-devel
 
-- name: check file yasm
-  stat:
-    path: $HOME/bin/yasm
-  register: yasm
-
-- name: install ffmpeg yasm
-  when: not yasm.stat.exists
-  raw: |
-
-    echo "yasm"
-    cd /usr/local/src
-    git clone --depth 1 git://github.com/yasm/yasm.git
-    cd yasm
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
-    make
-    make install
+- name: install yasm
+  yum: name=yasm
 
 - name: install nasm
   yum: name=nasm
