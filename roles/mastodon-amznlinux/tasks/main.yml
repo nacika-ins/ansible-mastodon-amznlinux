@@ -164,22 +164,11 @@
     make
     make install 
 
-- name: check file opus
-  stat:
-    path: $HOME/bin/opus
-  register: opus
-
-- name: install ffmpeg opus
-  when: not opus.stat.exists
-  raw: |
-    echo "opus"
-    cd /usr/local/src
-    git clone http://git.opus-codec.org/opus.git
-    cd opus
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
+- name: install opus
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-1.1.3-2.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-devel-1.1.3-2.el6.x86_64.rpm
 
 - name: check file libogg
   stat:
