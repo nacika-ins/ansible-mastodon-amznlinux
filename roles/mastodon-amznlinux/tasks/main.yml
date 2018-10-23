@@ -291,11 +291,19 @@
     cd ~/live
     yarn install --pure-lockfile
 
+- name: install PGDG repo
+  yum: name=https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
 
 - name: install postgres
+  yum:
+    name:
+      - postgresql96
+      - postgresql96-server
+      - postgresql96-libs
+      - postgresql96-contrib
+
+- name: start postgresql96
   shell: |
-    sudo yum localinstall -y https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
-    sudo yum install -y postgresql96 postgresql96-server postgresql96-libs postgresql96-contrib
     sudo chkconfig postgresql96 on
     # sudo /etc/init.d/postgresql96 initdb
     sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
