@@ -198,22 +198,11 @@
     make
     make install
 
-- name: check file vorbis
-  stat:
-    path: $HOME/bin/vorbis
-  register: vorbis
-
-- name: install ffmpeg vorbis
-  when: not vorbis.stat.exists
-  raw: |
-    echo "vorbis"
-    cd /usr/local/src
-    curl -O https://ftp.osuosl.org/pub/xiph/releases/vorbis/libvorbis-1.3.6.tar.gz
-    tar xzvf libvorbis-1.3.6.tar.gz
-    cd libvorbis-1.3.6
-    LDFLAGS="-L$HOME/ffmeg_build/lib" CPPFLAGS="-I$HOME/ffmpeg_build/include" ./configure --prefix="$HOME/ffmpeg_build" --with-ogg="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
+- name: install libvorbis
+  yum:
+    name:
+      - libvorbis
+      - libvorbis-devel
 
 - name: install libvpx
   yum:
