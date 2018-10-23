@@ -149,11 +149,7 @@
     mv wkhtmltox/bin/wkhtmltoimage /usr/bin/wkhtmltoimage
 
 - name: install pkg-config
-  raw: | 
-    cd /usr/local/src
-    # https://centos.pkgs.org/7/centos-x86_64/pkgconfig-0.27.1-4.el7.x86_64.rpm.html
-    wget http://mirror.centos.org/centos/7/os/x86_64/Packages/pkgconfig-0.27.1-4.el7.x86_64.rpm
-    yum localinstall -y pkgconfig-0.27.1-4.el7.x86_64.rpm
+  yum: name=http://mirror.centos.org/centos/7/os/x86_64/Packages/pkgconfig-0.27.1-4.el7.x86_64.rpm
 
 - name: install db4
   yum:
