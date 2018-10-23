@@ -44,248 +44,88 @@
   yum: name=epel-release
 
 - name: dependency ffmpeg
-  yum: pkg={{item}} state=latest
-  with_items:
-    - autoconf
-    - automake
-    - cmake
-    - freetype-devel
-    - gcc
-    - gcc-c++
-    - libtool
-    - make
-    - mercurial
-    - pkgconfig
-    - zlib-devel
+  yum:
+    state: latest
+    name:
+      - autoconf
+      - automake
+      - cmake
+      - freetype-devel
+      - gcc
+      - gcc-c++
+      - libtool
+      - make
+      - mercurial
+      - pkgconfig
+      - zlib-devel
 
-- name: check file yasm
-  stat:
-    path: $HOME/bin/yasm
-  register: yasm
-
-- name: install ffmpeg yasm
-  when: not yasm.stat.exists
-  raw: |
-
-    echo "yasm"
-    cd /usr/local/src
-    git clone --depth 1 git://github.com/yasm/yasm.git
-    cd yasm
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
-    make
-    make install
-
-- name: check file nasm
-  stat:
-    path: $HOME/bin/nasm
-  register: nasm
+- name: install yasm
+  yum: name=yasm
 
 - name: install nasm
-  when: not nasm.stat.exists
-  raw: |
-    echo "nasm"
-    cd /usr/local/src
-    wget https://www.nasm.us/pub/nasm/releasebuilds/2.14rc15/nasm-2.14rc15.tar.xz
-    tar xvfJ nasm-2.14rc15.tar.xz
-    cd nasm-2.14rc15
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
-    make
-    make install
+  yum: name=nasm
 
-- name: check file x264
-  stat:
-    path: $HOME/bin/x264
-  register: x264
+- name: install x264
+  yum:
+    name:
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/x264-0.130-0.20130531.1.el6.x86_64.rpm
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264_130-0.130-0.20130531.1.el6.x86_64.rpm
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264-devel-0.130-0.20130531.1.el6.x86_64.rpm
 
-- name: install ffmpeg x264
-  when: not x264.stat.exists
-  raw: |
-    echo "x264"
-    cd /usr/local/src
-    git clone --depth 1 git://git.videolan.org/x264
-    cd x264
-    export PATH=$PATH:$HOME/bin
-    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --enable-static
-    make
-    make install
+- name: install x265 & numactl-devel
+  yum:
+    name:
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-libs-1.9-1.el6.nux.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-1.9-1.el6.nux.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-devel-1.9-1.el6.nux.x86_64.rpm
+      - numactl-devel
 
-- name: check file x265
-  stat:
-    path: $HOME/ffmpeg_build/bin/x265
-  register: x265
+- name: install fdk-aac
+  yum:
+    name:
+      - http://li.nux.ro/download/nux/dextop/el7/x86_64/fdk-aac-0.1.4-1.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/fdk-aac-devel-0.1.4-1.x86_64.rpm
 
-- name: install ffmpeg x265
-  when: not x265.stat.exists
-  raw: |
-    echo "x265"
-    cd /usr/local/src
-    hg clone https://bitbucket.org/multicoreware/x265
-    cd x265/build/linux
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off ../../source
-    make
-    make install
+- name: install lame
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-libs-3.100-1.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-3.100-1.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-devel-3.100-1.el6.x86_64.rpm
 
-- name: check file aac
-  stat:
-    path: $HOME/ffmpeg_build/lib/libfdk-aac.a
-  register: aac
+- name: install opus
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-1.1.3-2.el6.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-devel-1.1.3-2.el6.x86_64.rpm
 
-- name: aac exists
-  debug:
-    msg: "{{aac.stat.exists}}"
+- name: install libogg
+  yum: name=libogg
 
-- name: install ffmpeg aac
-  when: not aac.stat.exists
-  raw: |
-    echo "aac"
-    cd /usr/local/src
-    git clone --depth 1 git://git.code.sf.net/p/opencore-amr/fdk-aac
-    cd fdk-aac
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
+- name: install libvorbis
+  yum:
+    name:
+      - libvorbis
+      - libvorbis-devel
 
-- name: check file lame
-  stat:
-    path: $HOME/bin/lame
-  register: lame
+- name: install libvpx
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-1.7.0-5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-devel-1.7.0-5.fc28.x86_64.rpm
 
-- name: install ffmpeg lame
-  when: not lame.stat.exists
-  raw: |
-    echo "lame"
-    cd /usr/local/src
-    curl -O -L http://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
-    tar xzvf lame-3.100.tar.gz
-    cd lame-3.100
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --disable-shared --enable-nasm
-    make
-    make install 
+- name: install cmake3
+  yum: name=cmake3
 
-- name: check file opus
-  stat:
-    path: $HOME/bin/opus
-  register: opus
-
-- name: install ffmpeg opus
-  when: not opus.stat.exists
-  raw: |
-    echo "opus"
-    cd /usr/local/src
-    git clone http://git.opus-codec.org/opus.git
-    cd opus
-    autoreconf -fiv
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
-
-- name: check file libogg
-  stat:
-    path: $HOME/bin/libogg
-  register: libogg
-
-- name: install ffmpeg libogg
-  when: not libogg.stat.exists
-  raw: |
-    echo "libogg"
-    cd /usr/local/src
-    curl -O https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-1.3.3.tar.gz
-    tar xzvf libogg-1.3.3.tar.gz
-    cd libogg-1.3.3
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
-
-- name: check file vorbis
-  stat:
-    path: $HOME/bin/vorbis
-  register: vorbis
-
-- name: install ffmpeg vorbis
-  when: not vorbis.stat.exists
-  raw: |
-    echo "vorbis"
-    cd /usr/local/src
-    curl -O https://ftp.osuosl.org/pub/xiph/releases/vorbis/libvorbis-1.3.6.tar.gz
-    tar xzvf libvorbis-1.3.6.tar.gz
-    cd libvorbis-1.3.6
-    LDFLAGS="-L$HOME/ffmeg_build/lib" CPPFLAGS="-I$HOME/ffmpeg_build/include" ./configure --prefix="$HOME/ffmpeg_build" --with-ogg="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
-
-- name: check file libvpx
-  stat:
-    path: $HOME/bin/libvpx
-  register: libvpx
-
-- name: install ffmpeg libvpx
-  when: not libvpx.stat.exists
-  raw: |
-    echo "libvpx" 
-    cd /usr/local/src
-    git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
-    cd libvpx
-    export PATH=$PATH:$HOME/bin
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-examples
-    make
-    make install
-
-- name: check file libvpx
-  stat:
-    path: $HOME/bin/libvpx
-  register: libvpx
-
-- name: cmake check version
-  command: cmake --version | head -n 1 | sed -r 's/.*([.0-9]+).*/\1/'
-  register: cmake_version
-
-- name: cmake version
-  debug:
-    msg: "{{ cmake_version.rc }}"
-
-- name: install cmake 3
-  when: cmake_version.rc != 3
-  raw: |
-    cd /usr/local/src
-    wget https://cmake.org/files/v3.12/cmake-3.12.3-Linux-x86_64.tar.gz
-    tar xzvf cmake-3.12.3-Linux-x86_64.tar.gz
-    cp -r cmake-3.12.3-Linux-x86_64/* /
-    echo "export CMAKE_ROOT=/share/cmake-3.12/" >> /etc/environment
-    export CMAKE_ROOT=/share/cmake-3.12/
-   
-- name: check file aom
-  stat:
-    path: $HOME/ffmpeg_build/include/aom/aom.h
-  register: aom
-
-- name: aom  exists
-  debug:
-    msg: "{{aom.stat.exists}}"
-
-
-- name: install ffmpeg aom
-  when: not aom.stat.exists
-  raw: |
-    echo "aom"
-    cd /usr/local/src
-    git clone --depth 1 https://aomedia.googlesource.com/aom
-    mkdir aom_build
-    cd aom_build
-    export PATH=$PATH:$HOME/bin
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom
-    make
-    make install
-
-- name: check file ffmpeg
-  stat:
-    path: $HOME/ffmpeg_build/bin/x265
-  register: ffmpeg
+- name: install aom
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/a/aom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-devel-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
 
 - name: install ffmpeg ffmpeg
-  when: not ffmpeg.stat.exists
-  raw: |
+  shell: |
     echo "ffmpeg"
     cd /usr/local/src
     wget http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz
@@ -295,6 +135,8 @@
     make
     make install
     hash -r
+  args:
+    creates: $HOME/bin/ffmpeg
 
 - name: install wkhtmltoimage
   raw: |
@@ -304,28 +146,25 @@
     mv wkhtmltox/bin/wkhtmltoimage /usr/bin/wkhtmltoimage
 
 - name: install pkg-config
-  raw: | 
-    cd /usr/local/src
-    # https://centos.pkgs.org/7/centos-x86_64/pkgconfig-0.27.1-4.el7.x86_64.rpm.html
-    wget http://mirror.centos.org/centos/7/os/x86_64/Packages/pkgconfig-0.27.1-4.el7.x86_64.rpm
-    yum localinstall -y pkgconfig-0.27.1-4.el7.x86_64.rpm
+  yum: name=http://mirror.centos.org/centos/7/os/x86_64/Packages/pkgconfig-0.27.1-4.el7.x86_64.rpm
 
 - name: install db4
-  raw: |
-    yum install -y db4-utils db4
+  yum:
+    name:
+      - db4-utils
+      - db4
 
 - name: install build-essential
-  raw: | 
-    yum groupinstall -y  "Development Tools" "Development Libraries"
+  yum:
+    name:
+      - "@Development Tools"
+      - "@Development Libraries"
 
 - name: install remi repository
-  raw: |
-    sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm | true
+  yum: name=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
 
 - name: install other library for remi
-  yum: pkg={{item}} state=latest enablerepo=remi
-  with_items:
-    - redis
+  yum: pkg=redis state=latest enablerepo=remi
 
 - name: install certbot
   raw: |
@@ -335,78 +174,54 @@
     cp certbot-auto /usr/local/bin
 
 - name: install other library
-  yum: pkg={{item}} state=latest
-  with_items:
-     - ImageMagick
-     - postgresql-devel
-     - libxml2-devel
-     - libxslt-devel
-     - file
-     - git
-     - git-core
-     - gcc-c++
-     - protobuf
-     - protobuf-compiler
-     - protobuf-devel
-     - gcc
-     - autoconf
-     - bison
-     - openssl
-     - openssl-devel # libssl-dev
-     - libyaml-devel # libyaml-devel
-     - readline
-     - readline-devel # libreadline6-dev
-     - zlib
-     - zlib-devel #  zlib1g-dev
-     - ncurses-libs # ncurses-libs
-     - ncurses-devel
-     - libffi-devel #libffi-dev
-     - gdbm # libgdbm5
-     - gdbm-devel # libgdbm-dev
-     - nginx
-     - postgresql
-     - postgresql-contrib
-     - libidn-devel
-     - libicu-devel
+  yum:
+    state: latest
+    name:
+      - ImageMagick
+      - postgresql-devel
+      - libxml2-devel
+      - libxslt-devel
+      - file
+      - git
+      - git-core
+      - gcc-c++
+      - protobuf
+      - protobuf-compiler
+      - protobuf-devel
+      - gcc
+      - autoconf
+      - bison
+      - openssl
+      - openssl-devel # libssl-dev
+      - libyaml-devel # libyaml-devel
+      - readline
+      - readline-devel # libreadline6-dev
+      - zlib
+      - zlib-devel #  zlib1g-dev
+      - ncurses-libs # ncurses-libs
+      - ncurses-devel
+      - libffi-devel #libffi-dev
+      - gdbm # libgdbm5
+      - gdbm-devel # libgdbm-dev
+      - nginx
+      - postgresql
+      - postgresql-contrib
+      - libidn-devel
+      - libicu-devel
 
-- name: copy rbenv.sh
-  copy:
-     src: rbenv.sh
-     dest: /etc/profile.d/rbenv.sh
-     owner: root
-     group: root
-     mode: 0644 
+- name: install ruby 2.5.1
+  yum:
+    name: https://github.com/feedforce/ruby-rpm/releases/download/2.5.1/ruby-2.5.1-1.el6.x86_64.rpm
+    allow_downgrade: yes # Amazon LinuxのRubyにはEpochが付いているためバージョンが新しいと判定されてしまう
 
-- name: check ruby install
-  raw: ruby -v | grep -ioh "2.5.1" | wc -l
-  register: ruby_installed
-
-- name: ruby installed
-  debug:
-    msg: "{{ ruby_installed.rc }}"
-
-- name: install ruby
-  when: ruby_installed.rc == 0
-  raw: |
-    cd /usr/local/src
-    git clone https://github.com/sstephenson/rbenv.git /usr/local/rbenv
-    git clone https://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugins/ruby-build
-    /usr/local/rbenv/plugin/ruby-build/install.sh
-    source /etc/profile.d/rbenv.sh
-    rbenv install 2.5.1
-    rbenv global 2.5.1
-    gem install bundler --no-ri --no-rdoc 
+- name: install bundler
+  gem: name=bundler
 
 - name: add mastodon group
   group: name=mastodon gid=991
 
 - name: add mastodon user
   user: name=mastodon uid=991 state=present  groups=mastodon
-
-- name: change ruby permission
-  raw: |
-    chown -R 991:991 /usr/local/rbenv/versions/2.5.1/lib/ruby/gems/2.5.0
-
 
 - name: install node for mastodon
   become: yes
@@ -419,10 +234,11 @@
     n stable
 
 - name: ruby yum dependencies
-  yum: pkg={{item}} state=latest
-  with_items:
-    - icu.x86_64
-    - libicu-devel.x86_64
+  yum:
+    state: latest
+    name:
+      - icu.x86_64
+      - libicu-devel.x86_64
 
 - name: ruby dependencies
   become: yes
@@ -450,11 +266,19 @@
     cd ~/live
     yarn install --pure-lockfile
 
+- name: install PGDG repo
+  yum: name=https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
 
 - name: install postgres
+  yum:
+    name:
+      - postgresql96
+      - postgresql96-server
+      - postgresql96-libs
+      - postgresql96-contrib
+
+- name: start postgresql96
   shell: |
-    sudo yum localinstall -y https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
-    sudo yum install -y postgresql96 postgresql96-server postgresql96-libs postgresql96-contrib
     sudo chkconfig postgresql96 on
     # sudo /etc/init.d/postgresql96 initdb
     sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
@@ -493,6 +317,9 @@
 
 - debug:
     msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
+
+- name: install python27-pip
+  yum: name=python27-pip
 
 - name: first run certbot
   when: not certbot.stat.exists
