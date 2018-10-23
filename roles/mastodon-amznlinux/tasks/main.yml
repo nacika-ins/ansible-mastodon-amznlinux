@@ -124,19 +124,29 @@
       - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/a/aom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
       - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-devel-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
 
+- name: copy libaomenc.c patch
+  copy:
+     src: libaomenc.patch
+     dest: /usr/local/src/libaomenc.patch
+     owner: root
+     group: root
+     mode: 0744
+
 - name: install ffmpeg ffmpeg
   shell: |
     echo "ffmpeg"
+    mkdir -p $HOME/bin
     cd /usr/local/src
     wget http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz
     tar Jxfv ffmpeg-4.0.2.tar.xz
     cd ffmpeg-4.0.2
-    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --extra-cflags="-I$HOME/ffmpeg_build/include" --extra-ldflags="-L$HOME/ffmpeg_build/lib" --bindir="$HOME/bin" --pkg-config-flags="--static" --enable-gpl --enable-nonfree --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libaom --extra-libs=-lpthread --extra-libs=-lm
+    patch -f ./libavcodec/libaomenc.c /usr/local/src/libaomenc.patch | true
+    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --extra-cflags="-I$HOME/ffmpeg_build/include" --extra-ldflags="-L$HOME/ffmpeg_build/lib" --bindir="/usr/bin" --pkg-config-flags="--static" --enable-gpl --enable-nonfree --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libaom --extra-libs=-lpthread --extra-libs=-lm
     make
     make install
     hash -r
   args:
-    creates: $HOME/bin/ffmpeg
+    creates: /usr/bin/ffmpeg
 
 - name: install wkhtmltoimage
   raw: |
@@ -211,11 +221,8 @@
 
 - name: install ruby 2.5.1
   yum:
-    name: https://github.com/feedforce/ruby-rpm/releases/download/2.5.1/ruby-2.5.1-1.el6.x86_64.rpm
+    name: "https://github.com/feedforce/ruby-rpm/releases/download/{{ruby_version}}/ruby-{{ruby_version}}-1.el6.x86_64.rpm"
     allow_downgrade: yes # Amazon LinuxのRubyにはEpochが付いているためバージョンが新しいと判定されてしまう
-
-- name: install bundler
-  gem: name=bundler
 
 - name: add mastodon group
   group: name=mastodon gid=991
@@ -228,10 +235,10 @@
   become_user: mastodon
   raw: |
     echo "export N_PREFIX=/home/mastodon/" >> ~/.bashrc
-    echo "PATH=/usr/local/bin:~/n/bin/:$PATH" >> ~/.bashrc
+    echo "export PATH=/usr/local/bin:~/n/bin/:$PATH" >> ~/.bashrc
     source ~/.bashrc
     export PATH=/usr/local/bin:~/n/bin/:$PATH
-    n stable
+    n {{node_version}}
 
 - name: ruby yum dependencies
   yum:
@@ -239,6 +246,14 @@
     name:
       - icu.x86_64
       - libicu-devel.x86_64
+
+- name: bundler install
+  become: yes
+  become_user: mastodon
+  environment:
+    GEM_HOME: /home/mastodon/.gem/
+    GEM_PATH: /home/mastodon/.gem/
+  gem: name=bundler
 
 - name: ruby dependencies
   become: yes
@@ -249,8 +264,11 @@
     cd ~/live
     [ `git branch | grep '* production' | wc -l` -ne 1 ] && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1) | true
     [ `git branch | grep '* production' | wc -l` -ne 1 ] && git checkout -b production
-    gem install bundler
-    export PATH=/usr/local/rbenv/shims/:$PATH
+    gem_bin=`find /home/mastodon/.gem/ -name bundle | grep bin | sed 's/\/bundle//' | head -n 1`
+    echo 'export PATH='"${gem_bin}"':$PATH' >> ~/.bashrc
+    echo 'export GEM_HOME=/home/mastodon/.gem/' >> ~/.bashrc
+    echo 'export GEM_PATH=/home/mastodon/.gem/' >> ~/.bashrc
+    source ~/.bashrc
     bundle config --local build.charlock_holmes -- --with-cxxflags=-std=c++11
     bundle config --local build.cld3 -- --with-cxxflags=-std=c++11
     bundle config --local build.unf_ext -- --with-cxxflags=-std=c++11
@@ -277,19 +295,25 @@
       - postgresql96-libs
       - postgresql96-contrib
 
+- name: check postgres
+  shell: |
+    sudo -u postgres psql -l | grep mastodon | wc -l
+  register: check_postgres
+
 - name: start postgresql96
+  when: check_postgres.rc == 0
   shell: |
     sudo chkconfig postgresql96 on
-    # sudo /etc/init.d/postgresql96 initdb
+    sudo /etc/init.d/postgresql96 stop | true
+    sudo /etc/init.d/postgresql96 initdb
     sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
     sudo /etc/init.d/postgresql96 start | true
-
 
 - name: postgres database creation
   become: yes
   become_user: postgres
   raw: |
-    psql --command "CREATE USER mastodon CREATEDB;" | true
+    psql --command "CREATE USER mastodon CREATEDB;" || true
 
 
 - name: copy nginx.conf
@@ -315,35 +339,31 @@
   debug:
     msg: "{{certbot.stat.exists}}"
 
-- debug:
-    msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
-
 - name: install python27-pip
   yum: name=python27-pip
 
-- name: first run certbot
+
+- name: first run certbot phase 1
   when: not certbot.stat.exists
   raw: |
-    service nginx stop | true
-    pip install -U pip virtualenv cryptography argparse cheetah oauth PrettyTable pyserial   | true
-    find / -name chardet* | grep python | xargs rm | true
+    service nginx stop || true
+    pip install -U pip virtualenv cryptography argparse cheetah oauth PrettyTable pyserial || true
+    find / -name chardet* | grep python | xargs rm || true
     rm -rf /opt/eff.org/certbot/
-    pip install certbot | true
-    certbot-auto certonly --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
+    pip install certbot || true
 
+- name: first run certbot phase 2
+  when: not certbot.stat.exists
+  raw: |
+    yes 1 | certbot-auto certonly --agree-tos --no-bootstrap --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
 
 - name: start nginx
   raw: |
     service nginx start
 
--  debug:
-    msg: "この処理でも止まるので手動で操作します。"
-
 - name: certbot using webroot
   raw: |
-    certbot certonly --webroot -d {{site_domain}} -w /home/mastodon/live/public/
-
-
+    yes 1 | certbot certonly --webroot -d {{site_domain}} -w /home/mastodon/live/public/
 
 - name: copy letsencrypt-renew
   copy:
@@ -353,26 +373,22 @@
      group: root
      mode: 0744
 
-- name: rbenv set path
-  become: yes
-  become_user: mastodon
-  raw: |
-    echo "source  /etc/profile.d/rbenv.sh" >> ~/.bashrc
-
 - debug:
-    msg: "ここでも処理が止まるので手動で対応"
+    msg: "Processing stops here, so manually"
+- debug:
+    msg: "RAILS_ENV=production bundle exec rake mastodon:setup"
 
 - name: mastodon application configuration
   become: yes
   become_user: mastodon
   shell: |
    source ~/.bashrc
-   source  /etc/profile.d/rbenv.sh
    cd ~/live
    echo ruby -v
    bundle install
    RAILS_ENV=production bundle exec rake mastodon:setup
-
+  args:
+    creates: $HOME/live/.env.production
 
 - name: setup permission
   raw: |
@@ -385,10 +401,10 @@
     mkdir -p /var/log/supervisor/
     pip install supervisor
 
-- name: copy supervisord.conf # nohup /usr/bin/python2.7 /usr/bin/supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &
-  copy:
+- name: copy supervisord.conf # nohup PATH=$PATH:/usr/local/bin:/usr/bin supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &
+  template:
      src: supervisord.conf
-     dest: supervisord.conf
+     dest: /etc/supervisord.conf
      owner: root
      group: root
      mode: 0644
