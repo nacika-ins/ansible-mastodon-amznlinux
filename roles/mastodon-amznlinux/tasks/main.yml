@@ -1,6 +1,14 @@
 # Amazon Linux 2018.03.0 for Amazon Lightsail
 ---
 
+- name: yum update
+  yum: name=* state=latest
+
+- name: install packages
+  yum:
+    name:
+      - git
+
 - name: change timezone JST
   raw: |
     cp /etc/sysconfig/clock /etc/sysconfig/clock.org
@@ -11,16 +19,18 @@
     sudo hostnamectl set-hostname deploy.dot.com
     service crond restart
 
+- name: uninstall nodejs
+  yum: name=nodejs state=absent
+
 - name: install node
   raw: |
-    yum remove -y nodejs
     cd /usr/local/src
     git clone https://github.com/tj/n.git | true
     cd n
     make
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
-    n stable
+    /usr/local/bin/n stable
 
 - name: install yarn
   raw: |
@@ -31,12 +41,7 @@
     yum install -y yarn
 
 - name: install epel
-  raw: |
-    mkdir -p /usr/local/src
-    cd /usr/local/src
-    wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
-    yum -y localinstall epel-release-latest-6.noarch.rpm | true
-    sudo yum install epel-release
+  yum: name=epel-release
 
 - name: dependency ffmpeg
   yum: pkg={{item}} state=latest
@@ -47,7 +52,6 @@
     - freetype-devel
     - gcc
     - gcc-c++
-    - git
     - libtool
     - make
     - mercurial
@@ -101,6 +105,7 @@
     cd /usr/local/src
     git clone --depth 1 git://git.videolan.org/x264
     cd x264
+    export PATH=$PATH:$HOME/bin
     PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --enable-static
     make
     make install
@@ -222,6 +227,7 @@
     cd /usr/local/src
     git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git
     cd libvpx
+    export PATH=$PATH:$HOME/bin
     ./configure --prefix="$HOME/ffmpeg_build" --disable-examples
     make
     make install
@@ -267,6 +273,7 @@
     git clone --depth 1 https://aomedia.googlesource.com/aom
     mkdir aom_build
     cd aom_build
+    export PATH=$PATH:$HOME/bin
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom
     make
     make install
@@ -383,7 +390,7 @@
   raw: |
     cd /usr/local/src
     git clone https://github.com/sstephenson/rbenv.git /usr/local/rbenv
-    git clone https://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugin/ruby-build
+    git clone https://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugins/ruby-build
     /usr/local/rbenv/plugin/ruby-build/install.sh
     source /etc/profile.d/rbenv.sh
     rbenv install 2.5.1
@@ -485,7 +492,7 @@
     msg: "{{certbot.stat.exists}}"
 
 - debug:
-  msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
+    msg: "このあたりで止まるので、certbotの確認は手動で行ってください"
 
 - name: first run certbot
   when: not certbot.stat.exists
