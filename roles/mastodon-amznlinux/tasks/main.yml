@@ -100,21 +100,13 @@
       - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264_130-0.130-0.20130531.1.el6.x86_64.rpm
       - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264-devel-0.130-0.20130531.1.el6.x86_64.rpm
 
-- name: check file x265
-  stat:
-    path: $HOME/ffmpeg_build/bin/x265
-  register: x265
-
-- name: install ffmpeg x265
-  when: not x265.stat.exists
-  raw: |
-    echo "x265"
-    cd /usr/local/src
-    hg clone https://bitbucket.org/multicoreware/x265
-    cd x265/build/linux
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off ../../source
-    make
-    make install
+- name: install x265 & numactl-devel
+  yum:
+    name:
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-libs-1.9-1.el6.nux.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-1.9-1.el6.nux.x86_64.rpm
+      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-devel-1.9-1.el6.nux.x86_64.rpm
+      - numactl-devel
 
 - name: install fdk-aac
   yum:
