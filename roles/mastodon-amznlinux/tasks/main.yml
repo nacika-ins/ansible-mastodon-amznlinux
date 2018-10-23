@@ -155,8 +155,10 @@
       - db4
 
 - name: install build-essential
-  raw: | 
-    yum groupinstall -y  "Development Tools" "Development Libraries"
+  yum:
+    name:
+      - "@Development Tools"
+      - "@Development Libraries"
 
 - name: install remi repository
   raw: |
