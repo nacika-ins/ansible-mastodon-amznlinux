@@ -170,22 +170,8 @@
       - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-1.1.3-2.el6.x86_64.rpm
       - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-devel-1.1.3-2.el6.x86_64.rpm
 
-- name: check file libogg
-  stat:
-    path: $HOME/bin/libogg
-  register: libogg
-
-- name: install ffmpeg libogg
-  when: not libogg.stat.exists
-  raw: |
-    echo "libogg"
-    cd /usr/local/src
-    curl -O https://ftp.osuosl.org/pub/xiph/releases/ogg/libogg-1.3.3.tar.gz
-    tar xzvf libogg-1.3.3.tar.gz
-    cd libogg-1.3.3
-    ./configure --prefix="$HOME/ffmpeg_build" --disable-shared
-    make
-    make install
+- name: install libogg
+  yum: name=libogg
 
 - name: install libvorbis
   yum:
