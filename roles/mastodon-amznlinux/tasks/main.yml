@@ -379,18 +379,6 @@
 - debug:
     msg: "RAILS_ENV=production bundle exec rake mastodon:setup"
 
-- name: mastodon application configuration
-  become: yes
-  become_user: mastodon
-  shell: |
-   source ~/.bashrc
-   cd ~/live
-   echo ruby -v
-   bundle install
-   RAILS_ENV=production bundle exec rake mastodon:setup
-  args:
-    creates: $HOME/live/.env.production
-
 - name: setup permission
   raw: |
     usermod -aG users nginx
@@ -409,3 +397,15 @@
      owner: root
      group: root
      mode: 0644
+
+- name: mastodon application configuration
+  become: yes
+  become_user: mastodon
+  shell: |
+   source ~/.bashrc
+   cd ~/live
+   echo ruby -v
+   bundle install
+   RAILS_ENV=production bundle exec rake mastodon:setup
+  args:
+    creates: $HOME/live/.env.production
