@@ -23,6 +23,10 @@ Ansible construction script of mastodon instance
 8. let try `ansible-playbook -i localhost localhost.yml -vv`
 9. start supervisord `nohup PATH=$PATH:/usr/local/bin:/usr/bin supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &`
 
+## Trouble shooting
+
+If it does not work please run Ansible several times.
+
 ## Amazon S3 IAM Policy sampile
 
 ```
