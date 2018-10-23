@@ -76,22 +76,8 @@
     make
     make install
 
-- name: check file nasm
-  stat:
-    path: $HOME/bin/nasm
-  register: nasm
-
 - name: install nasm
-  when: not nasm.stat.exists
-  raw: |
-    echo "nasm"
-    cd /usr/local/src
-    wget https://www.nasm.us/pub/nasm/releasebuilds/2.14rc15/nasm-2.14rc15.tar.xz
-    tar xvfJ nasm-2.14rc15.tar.xz
-    cd nasm-2.14rc15
-    ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"
-    make
-    make install
+  yum: name=nasm
 
 - name: install x264
   yum:
