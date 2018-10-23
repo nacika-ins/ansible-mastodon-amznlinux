@@ -209,44 +209,19 @@
       - libidn-devel
       - libicu-devel
 
-- name: copy rbenv.sh
-  copy:
-     src: rbenv.sh
-     dest: /etc/profile.d/rbenv.sh
-     owner: root
-     group: root
-     mode: 0644 
+- name: install ruby 2.5.1
+  yum:
+    name: https://github.com/feedforce/ruby-rpm/releases/download/2.5.1/ruby-2.5.1-1.el6.x86_64.rpm
+    allow_downgrade: yes # Amazon LinuxのRubyにはEpochが付いているためバージョンが新しいと判定されてしまう
 
-- name: check ruby install
-  raw: ruby -v | grep -ioh "2.5.1" | wc -l
-  register: ruby_installed
-
-- name: ruby installed
-  debug:
-    msg: "{{ ruby_installed.rc }}"
-
-- name: install ruby
-  when: ruby_installed.rc == 0
-  raw: |
-    cd /usr/local/src
-    git clone https://github.com/sstephenson/rbenv.git /usr/local/rbenv
-    git clone https://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugins/ruby-build
-    /usr/local/rbenv/plugin/ruby-build/install.sh
-    source /etc/profile.d/rbenv.sh
-    rbenv install 2.5.1
-    rbenv global 2.5.1
-    gem install bundler --no-ri --no-rdoc 
+- name: install bundler
+  gem: name=bundler
 
 - name: add mastodon group
   group: name=mastodon gid=991
 
 - name: add mastodon user
   user: name=mastodon uid=991 state=present  groups=mastodon
-
-- name: change ruby permission
-  raw: |
-    chown -R 991:991 /usr/local/rbenv/versions/2.5.1/lib/ruby/gems/2.5.0
-
 
 - name: install node for mastodon
   become: yes
