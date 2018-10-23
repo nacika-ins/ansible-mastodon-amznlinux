@@ -93,22 +93,12 @@
     make
     make install
 
-- name: check file x264
-  stat:
-    path: $HOME/bin/x264
-  register: x264
-
-- name: install ffmpeg x264
-  when: not x264.stat.exists
-  raw: |
-    echo "x264"
-    cd /usr/local/src
-    git clone --depth 1 git://git.videolan.org/x264
-    cd x264
-    export PATH=$PATH:$HOME/bin
-    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" --enable-static
-    make
-    make install
+- name: install x264
+  yum:
+    name:
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/x264-0.130-0.20130531.1.el6.x86_64.rpm
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264_130-0.130-0.20130531.1.el6.x86_64.rpm
+      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264-devel-0.130-0.20130531.1.el6.x86_64.rpm
 
 - name: check file x265
   stat:
