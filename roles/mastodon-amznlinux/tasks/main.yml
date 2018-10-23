@@ -402,7 +402,7 @@
     mkdir -p /var/log/supervisor/
     pip install supervisor
 
-- name: copy supervisord.conf # nohup PATH=$PATH:/usr/local/bin:/usr/bin supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1  &
+- name: copy supervisord.conf # nohup supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1 &
   template:
      src: supervisord.conf
      dest: /etc/supervisord.conf
