@@ -188,28 +188,12 @@
 - name: install cmake3
   yum: name=cmake3
 
-- name: check file aom
-  stat:
-    path: $HOME/ffmpeg_build/include/aom/aom.h
-  register: aom
-
-- name: aom  exists
-  debug:
-    msg: "{{aom.stat.exists}}"
-
-
-- name: install ffmpeg aom
-  when: not aom.stat.exists
-  raw: |
-    echo "aom"
-    cd /usr/local/src
-    git clone --depth 1 https://aomedia.googlesource.com/aom
-    mkdir aom_build
-    cd aom_build
-    export PATH=$PATH:$HOME/bin
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom
-    make
-    make install
+- name: install aom
+  yum:
+    name:
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/a/aom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
+      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-devel-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
 
 - name: check file ffmpeg
   stat:
