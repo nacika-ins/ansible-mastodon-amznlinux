@@ -9,21 +9,21 @@
     name:
       - git
 
-- name: change timezone JST
-  raw: |
-    cp /etc/sysconfig/clock /etc/sysconfig/clock.org
-    ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-    echo 'ZONE="Asia/Tokyo"' > /etc/sysconfig/clock
-    echo 'UTC=false' > /etc/sysconfig/clock
-    sudo timedatectl set-timezone Asia/Tokyo
-    sudo hostnamectl set-hostname deploy.dot.com
-    service crond restart
+- name: change hostname
+  hostname: name={{ site_domain }}
+
+- name: set timezone to Asia/Tokyo
+  timezone: name=Asia/Tokyo
+  notify: restart crond
+
+- name: restart crond immediately
+  meta: flush_handlers
 
 - name: uninstall nodejs
   yum: name=nodejs state=absent
 
 - name: install node
-  raw: |
+  shell: |
     cd /usr/local/src
     git clone https://github.com/tj/n.git | true
     cd n
@@ -31,6 +31,8 @@
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
     /usr/local/bin/n {{node_version}}
+  args:
+    creates: /usr/local/bin/node
 
 - name: install yarn
   raw: |
@@ -39,6 +41,8 @@
     yes | curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
     curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
     yum install -y yarn
+  args:
+    creates: /usr/bin/yarn
 
 - name: install epel
   yum: name=epel-release
@@ -356,6 +360,7 @@
 - name: first run certbot phase 2
   when: not certbot.stat.exists
   raw: |
+    export PATH=$PATH:/usr/local/bin
     yes 1 | certbot-auto certonly --agree-tos --no-bootstrap --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
 
 - name: start nginx
@@ -388,7 +393,7 @@
 - name: install supervisor
   raw: |
     mkdir -p /var/log/supervisor/
-    pip install supervisor
+    /usr/local/bin/pip install supervisor
 
 - name: copy supervisord.conf # nohup supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1 &
   template:
