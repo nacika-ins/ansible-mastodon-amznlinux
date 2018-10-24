@@ -305,8 +305,12 @@
     sudo -u postgres psql -l 2>/dev/null | grep mastodon | wc -l
   register: check_postgres
 
+- name: show check postgres
+  debug:
+    msg: "{{check_postgres.rc}}"
+
 - name: start postgresql96
-  when: check_postgres.rc == "0"
+  when: check_postgres.rc == 0
   shell: |
     sudo chkconfig postgresql96 on
     sudo /etc/init.d/postgresql96 stop | true
