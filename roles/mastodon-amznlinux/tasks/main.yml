@@ -23,7 +23,7 @@
   yum: name=nodejs state=absent
 
 - name: install node
-  raw: |
+  shell: |
     cd /usr/local/src
     git clone https://github.com/tj/n.git | true
     cd n
@@ -31,6 +31,8 @@
     mkdir -p /usr/local/n
     chown -R 991:991 /usr/local/n
     /usr/local/bin/n {{node_version}}
+  args:
+    creates: /usr/local/bin/node
 
 - name: install yarn
   raw: |
