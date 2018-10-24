@@ -360,6 +360,7 @@
 - name: first run certbot phase 2
   when: not certbot.stat.exists
   raw: |
+    export PATH=$PATH:/usr/local/bin
     yes 1 | certbot-auto certonly --agree-tos --no-bootstrap --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
 
 - name: start nginx
