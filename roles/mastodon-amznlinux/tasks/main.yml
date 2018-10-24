@@ -305,6 +305,10 @@
     sudo -u postgres psql -l 2>/dev/null | grep mastodon | wc -l
   register: check_postgres
 
+- name: show check postgres
+  debug:
+    msg: "{{check_postgres.rc}}"
+
 - name: start postgresql96
   when: check_postgres.rc == "0"
   shell: |
