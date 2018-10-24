@@ -379,11 +379,6 @@
      group: root
      mode: 0744
 
-- debug:
-    msg: "Processing stops here, so manually"
-- debug:
-    msg: "RAILS_ENV=production bundle exec rake mastodon:setup"
-
 - name: setup permission
   raw: |
     usermod -aG users nginx
@@ -402,6 +397,12 @@
      owner: root
      group: root
      mode: 0644
+
+- debug:
+    msg: "Processing stops here, so manually"
+- debug:
+    msg: "RAILS_ENV=production bundle exec rake mastodon:setup"
+
 
 - name: mastodon application configuration
   become: yes
