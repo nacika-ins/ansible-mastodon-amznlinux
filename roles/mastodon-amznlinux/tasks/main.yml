@@ -11,13 +11,14 @@
 
 - name: change timezone JST
   raw: |
-    cp /etc/sysconfig/clock /etc/sysconfig/clock.org
-    ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-    echo 'ZONE="Asia/Tokyo"' > /etc/sysconfig/clock
-    echo 'UTC=false' > /etc/sysconfig/clock
-    sudo timedatectl set-timezone Asia/Tokyo
     sudo hostnamectl set-hostname deploy.dot.com
-    service crond restart
+
+- name: set timezone to Asia/Tokyo
+  timezone: name=Asia/Tokyo
+  notify: restart crond
+
+- name: restart crond immediately
+  meta: flush_handlers
 
 - name: uninstall nodejs
   yum: name=nodejs state=absent
