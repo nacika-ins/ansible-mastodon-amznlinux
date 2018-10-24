@@ -9,9 +9,8 @@
     name:
       - git
 
-- name: change timezone JST
-  raw: |
-    sudo hostnamectl set-hostname deploy.dot.com
+- name: change hostname
+  hostname: name={{ site_domain }}
 
 - name: set timezone to Asia/Tokyo
   timezone: name=Asia/Tokyo
