@@ -393,7 +393,7 @@
 - name: install supervisor
   raw: |
     mkdir -p /var/log/supervisor/
-    pip install supervisor
+    /usr/local/bin/pip install supervisor
 
 - name: copy supervisord.conf # nohup supervisord -n -c /etc/supervisord.conf >/dev/null 2>&1 &
   template:
