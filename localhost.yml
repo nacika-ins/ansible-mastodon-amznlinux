@@ -2,5 +2,6 @@
   connection: local
   roles:
     - { role: common, tags: common }
+    - { role: ffmpeg, tags: ffmpeg }
     - mastodon-amznlinux
   become: yes
