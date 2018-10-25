@@ -292,38 +292,38 @@
 - name: install PGDG repo
   yum: name=https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
 
-- name: install postgres
+- name: install postgres and libs
   yum:
     name:
       - postgresql96
       - postgresql96-server
       - postgresql96-libs
       - postgresql96-contrib
+      - python27-psycopg2
 
-- name: check postgres
-  shell: |
-    sudo -u postgres psql -l 2>/dev/null | grep mastodon | wc -l
-  register: check_postgres
+- name: postgresql initdb
+  shell: /etc/init.d/postgresql96 initdb
+  args:
+    creates:
+      /var/lib/pgsql96/data/pg_hba.conf
 
-- name: show check postgres
-  debug:
-    msg: "{{check_postgres.rc}}"
+- name: edit pg_hba.conf
+  lineinfile:
+    path: /var/lib/pgsql96/data/pg_hba.conf
+    #     TYPE     DATABASE        USER            ADDRESS                 METHOD
+    line: 'local   all             all                                     trust'
+    regexp: '^local +all +all +.*'
 
-- name: start postgresql96
-  when: check_postgres.rc == 0
-  shell: |
-    sudo chkconfig postgresql96 on
-    sudo /etc/init.d/postgresql96 stop | true
-    sudo /etc/init.d/postgresql96 initdb
-    sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
-    sudo /etc/init.d/postgresql96 start | true
+- name: start postgresql
+  service:
+    name: postgresql96
+    state: started
+    enabled: yes
 
-- name: postgres database creation
-  become: yes
-  become_user: postgres
-  raw: |
-    psql --command "CREATE USER mastodon CREATEDB;" || true
-
+- name: create mastodon user
+  postgresql_user:
+    name: mastodon
+    role_attr_flags: CREATEDB
 
 - name: copy nginx.conf
   template:
