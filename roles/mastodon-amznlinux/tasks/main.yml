@@ -228,7 +228,8 @@
 
 - name: first run certbot phase 1
   when: not certbot.stat.exists
-  raw: |
+  shell: |
+    export PATH=$PATH:/usr/local/bin
     service nginx stop || true
     pip install -U pip virtualenv cryptography argparse cheetah oauth PrettyTable pyserial || true
     find / -name chardet* | grep python | xargs rm || true
