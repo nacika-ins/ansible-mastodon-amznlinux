@@ -1,24 +1,6 @@
 # Amazon Linux 2018.03.0 for Amazon Lightsail
 ---
 
-- name: yum update
-  yum: name=* state=latest
-
-- name: install packages
-  yum:
-    name:
-      - git
-
-- name: change hostname
-  hostname: name={{ site_domain }}
-
-- name: set timezone to Asia/Tokyo
-  timezone: name=Asia/Tokyo
-  notify: restart crond
-
-- name: restart crond immediately
-  meta: flush_handlers
-
 - name: uninstall nodejs
   yum: name=nodejs state=absent
 
@@ -43,9 +25,6 @@
     yum install -y yarn
   args:
     creates: /usr/bin/yarn
-
-- name: install epel
-  yum: name=epel-release
 
 - name: dependency ffmpeg
   yum:
