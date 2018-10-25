@@ -333,11 +333,11 @@
      group: root
      mode: 0644 
 
-
 - name: install redis
-  raw: |
-    chkconfig redis on
-    service redis start
+  service:
+    name: redis
+    state: started
+    enabled: yes
 
 - name: check certbot
   stat:
