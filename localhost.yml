@@ -3,5 +3,5 @@
   roles:
     - { role: common, tags: common }
     - { role: ffmpeg, tags: ffmpeg }
-    - mastodon-amznlinux
+    - { role: mastodon-amznlinux, tags: mastodon }
   become: yes
