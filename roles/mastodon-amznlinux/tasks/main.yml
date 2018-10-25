@@ -238,17 +238,13 @@
 
 - name: first run certbot phase 2
   when: not certbot.stat.exists
-  raw: |
+  shell: |
     export PATH=$PATH:/usr/local/bin
     yes 1 | certbot-auto certonly --agree-tos --no-bootstrap --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
 
 - name: start nginx
   raw: |
     service nginx start
-
-- name: certbot using webroot
-  raw: |
-    yes 1 | certbot certonly --webroot -d {{site_domain}} -w /home/mastodon/live/public/
 
 - name: copy letsencrypt-renew
   copy:
