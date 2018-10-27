@@ -1,24 +1,6 @@
 # Amazon Linux 2018.03.0 for Amazon Lightsail
 ---
 
-- name: yum update
-  yum: name=* state=latest
-
-- name: install packages
-  yum:
-    name:
-      - git
-
-- name: change hostname
-  hostname: name={{ site_domain }}
-
-- name: set timezone to Asia/Tokyo
-  timezone: name=Asia/Tokyo
-  notify: restart crond
-
-- name: restart crond immediately
-  meta: flush_handlers
-
 - name: uninstall nodejs
   yum: name=nodejs state=absent
 
@@ -43,114 +25,6 @@
     yum install -y yarn
   args:
     creates: /usr/bin/yarn
-
-- name: install epel
-  yum: name=epel-release
-
-- name: dependency ffmpeg
-  yum:
-    state: latest
-    name:
-      - autoconf
-      - automake
-      - cmake
-      - freetype-devel
-      - gcc
-      - gcc-c++
-      - libtool
-      - make
-      - mercurial
-      - pkgconfig
-      - zlib-devel
-
-- name: install yasm
-  yum: name=yasm
-
-- name: install nasm
-  yum: name=nasm
-
-- name: install x264
-  yum:
-    name:
-      - http://pkgrepo.linuxtech.net/el6/release/x86_64/x264-0.130-0.20130531.1.el6.x86_64.rpm
-      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264_130-0.130-0.20130531.1.el6.x86_64.rpm
-      - http://pkgrepo.linuxtech.net/el6/release/x86_64/libx264-devel-0.130-0.20130531.1.el6.x86_64.rpm
-
-- name: install x265 & numactl-devel
-  yum:
-    name:
-      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-libs-1.9-1.el6.nux.x86_64.rpm
-      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-1.9-1.el6.nux.x86_64.rpm
-      - http://li.nux.ro/download/nux/dextop/el6/x86_64/x265-devel-1.9-1.el6.nux.x86_64.rpm
-      - numactl-devel
-
-- name: install fdk-aac
-  yum:
-    name:
-      - http://li.nux.ro/download/nux/dextop/el7/x86_64/fdk-aac-0.1.4-1.x86_64.rpm
-      - http://li.nux.ro/download/nux/dextop/el6/x86_64/fdk-aac-devel-0.1.4-1.x86_64.rpm
-
-- name: install lame
-  yum:
-    name:
-      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-libs-3.100-1.el6.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-3.100-1.el6.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/l/lame-devel-3.100-1.el6.x86_64.rpm
-
-- name: install opus
-  yum:
-    name:
-      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-1.1.3-2.el6.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/epel/6/x86_64/Packages/o/opus-devel-1.1.3-2.el6.x86_64.rpm
-
-- name: install libogg
-  yum: name=libogg
-
-- name: install libvorbis
-  yum:
-    name:
-      - libvorbis
-      - libvorbis-devel
-
-- name: install libvpx
-  yum:
-    name:
-      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-1.7.0-5.fc28.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/fedora/linux/releases/28/Everything/x86_64/os/Packages/l/libvpx-devel-1.7.0-5.fc28.x86_64.rpm
-
-- name: install cmake3
-  yum: name=cmake3
-
-- name: install aom
-  yum:
-    name:
-      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/a/aom-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
-      - http://dl.fedoraproject.org/pub/fedora/linux/updates/28/Everything/x86_64/Packages/l/libaom-devel-1.0.0-4.20180925gitd0076f5.fc28.x86_64.rpm
-
-- name: copy libaomenc.c patch
-  copy:
-     src: libaomenc.patch
-     dest: /usr/local/src/libaomenc.patch
-     owner: root
-     group: root
-     mode: 0744
-
-- name: install ffmpeg ffmpeg
-  shell: |
-    echo "ffmpeg"
-    mkdir -p $HOME/bin
-    cd /usr/local/src
-    wget http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.xz
-    tar Jxfv ffmpeg-4.0.2.tar.xz
-    cd ffmpeg-4.0.2
-    patch -f ./libavcodec/libaomenc.c /usr/local/src/libaomenc.patch | true
-    PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure --prefix="$HOME/ffmpeg_build" --extra-cflags="-I$HOME/ffmpeg_build/include" --extra-ldflags="-L$HOME/ffmpeg_build/lib" --bindir="/usr/bin" --pkg-config-flags="--static" --enable-gpl --enable-nonfree --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopus --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-libaom --extra-libs=-lpthread --extra-libs=-lm
-    make
-    make install
-    hash -r
-  args:
-    creates: /usr/bin/ffmpeg
 
 - name: install wkhtmltoimage
   raw: |
@@ -292,38 +166,38 @@
 - name: install PGDG repo
   yum: name=https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-ami201503-96-9.6-2.noarch.rpm
 
-- name: install postgres
+- name: install postgres and libs
   yum:
     name:
       - postgresql96
       - postgresql96-server
       - postgresql96-libs
       - postgresql96-contrib
+      - python27-psycopg2
 
-- name: check postgres
-  shell: |
-    sudo -u postgres psql -l 2>/dev/null | grep mastodon | wc -l
-  register: check_postgres
+- name: postgresql initdb
+  shell: /etc/init.d/postgresql96 initdb
+  args:
+    creates:
+      /var/lib/pgsql96/data/pg_hba.conf
 
-- name: show check postgres
-  debug:
-    msg: "{{check_postgres.rc}}"
+- name: edit pg_hba.conf
+  lineinfile:
+    path: /var/lib/pgsql96/data/pg_hba.conf
+    #     TYPE     DATABASE        USER            ADDRESS                 METHOD
+    line: 'local   all             all                                     trust'
+    regexp: '^local +all +all +.*'
 
-- name: start postgresql96
-  when: check_postgres.rc == 0
-  shell: |
-    sudo chkconfig postgresql96 on
-    sudo /etc/init.d/postgresql96 stop | true
-    sudo /etc/init.d/postgresql96 initdb
-    sed -i 's/peer/trust/g'  /var/lib/pgsql96/data/pg_hba.conf
-    sudo /etc/init.d/postgresql96 start | true
+- name: start postgresql
+  service:
+    name: postgresql96
+    state: started
+    enabled: yes
 
-- name: postgres database creation
-  become: yes
-  become_user: postgres
-  raw: |
-    psql --command "CREATE USER mastodon CREATEDB;" || true
-
+- name: create mastodon user
+  postgresql_user:
+    name: mastodon
+    role_attr_flags: CREATEDB
 
 - name: copy nginx.conf
   template:
@@ -333,11 +207,11 @@
      group: root
      mode: 0644 
 
-
 - name: install redis
-  raw: |
-    chkconfig redis on
-    service redis start
+  service:
+    name: redis
+    state: started
+    enabled: yes
 
 - name: check certbot
   stat:
@@ -354,7 +228,8 @@
 
 - name: first run certbot phase 1
   when: not certbot.stat.exists
-  raw: |
+  shell: |
+    export PATH=$PATH:/usr/local/bin
     service nginx stop || true
     pip install -U pip virtualenv cryptography argparse cheetah oauth PrettyTable pyserial || true
     find / -name chardet* | grep python | xargs rm || true
@@ -363,17 +238,13 @@
 
 - name: first run certbot phase 2
   when: not certbot.stat.exists
-  raw: |
+  shell: |
     export PATH=$PATH:/usr/local/bin
     yes 1 | certbot-auto certonly --agree-tos --no-bootstrap --standalone --debug  -d  {{site_domain}} -m {{certbot_email_address}}
 
 - name: start nginx
   raw: |
     service nginx start
-
-- name: certbot using webroot
-  raw: |
-    yes 1 | certbot certonly --webroot -d {{site_domain}} -w /home/mastodon/live/public/
 
 - name: copy letsencrypt-renew
   copy:

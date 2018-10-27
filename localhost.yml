@@ -1,4 +1,7 @@
 - hosts: localhost
   connection: local
   roles:
-    - mastodon-amznlinux
+    - { role: common, tags: common }
+    - { role: ffmpeg, tags: ffmpeg }
+    - { role: mastodon-amznlinux, tags: mastodon }
+  become: yes

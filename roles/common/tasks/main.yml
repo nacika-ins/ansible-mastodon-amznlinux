@@ -1,0 +1,18 @@
+- name: yum update
+  yum: name=* state=latest
+
+- name: install packages
+  yum:
+    name:
+      - git
+      - epel-release
+
+- name: change hostname
+  hostname: name={{ site_domain }}
+
+- name: set timezone to Asia/Tokyo
+  timezone: name=Asia/Tokyo
+  notify: restart crond
+
+- name: restart crond immediately
+  meta: flush_handlers
